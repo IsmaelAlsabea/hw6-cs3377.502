@@ -3,12 +3,15 @@
  * Email:  isa170030@utdallas.edu                                                                                                                             
  */     
 
-class BinaryFileHeader
+
+
+#include <stdint.h>
+
+const int mRSL =25;
+
+class BinaryFileRecord
 {
  public:
-
-  uint32_t magicNumber;
-  uint32_t versionNumber;
-  uint64_t numRecords;
-
+  uint8_t strLength;
+  char stringBuffer[mRSL]; //max record string length
 };

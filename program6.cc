@@ -1,7 +1,4 @@
 /*
- * Usage of CDK Matrix
- *
- * File:   program6.cc 
  * Author: Ismael Alsabea
  * Email:  isa170030@utdallas.edu
  */
@@ -12,25 +9,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <stdint.h>
 
 #include "cdk.h"
 #include "BinaryFileHeader.h"
-
+#include "BinaryFileRecord.h"
 
 #define MATRIX_WIDTH 3
 #define MATRIX_HEIGHT 5
-#define BOX_WIDTH 15
+#define BOX_WIDTH 18
 #define MATRIX_NAME_STRING "Binary File Contents"
-#define bs 1024 //buffer size
 using namespace std;
 
-
+string transformToUpperCase (string str);
 int main()
-{
-  FILE          *ofc; //output from stream
-  char          tmpBuffer[bs];
-  char          *line;
-  
+{ 
   WINDOW	*window;
   CDKSCREEN	*cdkscreen;
   CDKMATRIX     *myMatrix;           // CDK Screen Matrix
@@ -42,25 +35,38 @@ int main()
 
 
   BinaryFileHeader *headerInput = new BinaryFileHeader ();
+  
   ifstream readStream ("cs3377.bin", ios::in | ios::binary);
   readStream.read ((char *)headerInput, sizeof (BinaryFileHeader));
-  readStream.close();
   
-  string shellCmd= "strings cs3377.bin";
-  ofc= popen(shellCmd.c_str(),"r");
-  if (!ofc)
-    exit(EXIT_FAILURE);
-  
-  vector <string> stringsArray;
-  
-  line =fgets (tmpBuffer,bs,ofc);
-  while(line!=NULL)
+  // here the work with the header class have ended no more thinking about it.
+  stringstream ss ; int k=0;
+  ss << "  ";
+  vector <BinaryFileRecord*> stringsVect;
+  while (true)
     {
-      stringsArray.push_back(line);
-      line =fgets (tmpBuffer,bs,ofc);
+      //flushing the string stream
+      ss.str("");
+      // putting a new instance in the vector
+      stringsVect.push_back(new BinaryFileRecord());
+      // reading 1 string and putting the sequence at instace k
+      readStream.read ((char *)stringsVect.at(k), sizeof (BinaryFileRecord));
+
+       //ptting the string buffer in the string stream
+      ss << stringsVect.at(k)->stringBuffer;
+      // turning the string stream into string to calculate its length 
+      stringsVect.at(k)->strLength= ss.str().length();
+      //flag to exit the llop
+      if (stringsVect.at(k)->strLength==0)
+	{
+	 ss.str("");
+	 //remove the last element in the vector becuase it has no value.
+	 stringsVect.pop_back();
+	break;
+	}
+      // incrementing the counter
+      k++;
     }
-  pclose(ofc);
-  
   /*
    * Initialize the Cdk screen.
    *
@@ -87,40 +93,59 @@ int main()
   /* Display the Matrix */
   drawCDKMatrix(myMatrix, true);
 
-  stringstream mn ; //magic number
+ 
   
-  mn << hex << headerInput->magicNumber;
-  string j= mn.str();
-  
+  ss << hex << headerInput->magicNumber;
+  string j= "0X";
+    j.append(ss.str());
+  j= transformToUpperCase(j);
   /*
    * Dipslay a message
    */
   setCDKMatrixCell(myMatrix, 1, 1, j.c_str());
   j= "version: ";
-  stringstream jj;
-  jj << j << headerInput->versionNumber;
-  setCDKMatrixCell(myMatrix, 1, 2, jj.str().c_str());
-  jj.str("");
+  ss.str("");
+  ss << j << headerInput->versionNumber;
+  setCDKMatrixCell(myMatrix, 1, 2, ss.str().c_str());
+  ss.str("");
   j= "NumRecords: ";
-  jj << j <<headerInput->numRecords;
-  setCDKMatrixCell(myMatrix, 1, 3, jj.str().c_str());
+  ss << j <<headerInput->numRecords;
+  setCDKMatrixCell(myMatrix, 1, 3, ss.str().c_str());
   int e=2;
-
-  for (unsigned int i=0;i< stringsArray.size();i++)
+  for (unsigned int i=0; i < stringsVect.size();i++)
 	    {
-	     jj.str("");
-	     jj << stringsArray.at(i).length();
-	     setCDKMatrixCell(myMatrix, e, 1, jj.str().c_str());
-	      setCDKMatrixCell(myMatrix, e, 2, stringsArray.at(i).c_str());
+	     ss.str("");
+	     ss << stringsVect.at(i)->stringBuffer ;
+	     setCDKMatrixCell(myMatrix, e, 1, ss.str().c_str());
+	      ss.str("");
+	      ss << dec <<(int)stringsVect.at(i)->strLength;
+	     
+	      setCDKMatrixCell(myMatrix, e, 2, ss.str().c_str());
 	      e++;
 	    }
   
   drawCDKMatrix(myMatrix, true);    /* required  */
 
   /* so we can see results */
-  sleep (5);
+  sleep (10);
 
 
   // Cleanup screen
   endCDK();
+}
+
+string transformToUpperCase (string str)
+{
+  char temp=' ';
+  for( unsigned int i=0;i<str.length();i++)
+    {
+      temp= str.at(i);
+      if ((int)temp> 96 && (int)temp < 123 && (int) temp!=32)
+	{
+	  temp-=32;
+	  str.at(i)=temp;
+	}
+    }
+  
+  return str;
 }

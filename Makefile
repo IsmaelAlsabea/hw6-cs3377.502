@@ -1,8 +1,7 @@
 
-# UTD CS3377 CDK Example
-# Dr. Perkins
-# stephen.perkins@utdallas.edu
-#
+# Author: Ismael Alsabea
+ #Email:  isa170030@utdallas.edu     
+
 
 CXX = g++
 CXXFLAGS =
