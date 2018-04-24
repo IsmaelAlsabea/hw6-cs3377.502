@@ -30,3 +30,5 @@ clean:
 $(EXECFILE): $(OBJS)
 	$(CXX) $(CPPFLAGS) -o $@ $(OBJS) -L/scratch/perkins/lib $(LDLIBS)
 
+compress:
+	tar cvfz sixthProgram_isa170030@utdallas.edu.tar.gz *.h *.cc *.bin Makefile
